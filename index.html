@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>极简日程管理 - Planner</title>
+    <link rel="icon" type="image/png" href="image.png">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts Inter & Noto Sans SC -->
@@ -82,6 +83,9 @@
                 <button id="themeToggleBtn" class="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all focus:outline-none" title="切换暗黑模式">
                     <i class="fa-solid fa-moon text-lg dark:hidden"></i>
                     <i class="fa-solid fa-sun text-lg hidden dark:block text-yellow-400"></i>
+                </button>
+                <button id="musicToggleBtn" class="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all focus:outline-none" title="切换背景音乐">
+                    <i class="fa-solid fa-music text-lg"></i>
                 </button>
                 
                 <!-- 新增日程按钮 -->
@@ -224,6 +228,8 @@
         <p class="text-xs mt-1">你的日程完全保存在本地浏览器缓存中，不会泄露给任何服务器。</p>
     </footer>
 
+    <audio id="bgmAudio" src="Sunlight_on_the_Desk.mp3" loop preload="auto"></audio>
+
     <!-- 添加/编辑日程模态框 -->
     <div id="eventModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden opacity-0 transition-all duration-300">
         <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-700 transform scale-95 transition-all duration-300" id="modalCard">
@@ -307,6 +313,7 @@
         let filterCategory = 'all';    // 默认展示全部
         let searchQuery = '';          // 搜索关键词
         let events = [];               // 日程数据集
+        let isMusicOn = false;         // 背景音乐开关状态
 
         // 颜色映射配置
         const CATEGORIES = {
@@ -321,7 +328,10 @@
             // 1. 初始化暗黑模式设置
             initTheme();
             
-            // 2. 从本地缓存获取日程
+            // 2. 初始化背景音乐设置
+            initMusic();
+            
+            // 3. 从本地缓存获取日程
             loadEventsFromLocalStorage();
             
             // 3. 设置当前年、月、日
@@ -416,6 +426,44 @@
                     localStorage.theme = 'dark';
                 }
             });
+        }
+
+        function initMusic() {
+            const audio = document.getElementById('bgmAudio');
+            audio.volume = 0.35;
+            isMusicOn = localStorage.getItem('musicEnabled') === 'true';
+            updateMusicButton();
+
+            document.getElementById('musicToggleBtn').addEventListener('click', () => {
+                isMusicOn = !isMusicOn;
+                localStorage.setItem('musicEnabled', isMusicOn);
+                updateMusicButton();
+                if (isMusicOn) {
+                    audio.play().catch(() => {
+                        console.warn('浏览器阻止自动播放，等待用户交互后再播放。');
+                    });
+                } else {
+                    audio.pause();
+                }
+            });
+
+            if (isMusicOn) {
+                audio.play().catch(() => {
+                    console.warn('浏览器阻止自动播放，等待用户交互后再播放。');
+                });
+            }
+        }
+
+        function updateMusicButton() {
+            const btn = document.getElementById('musicToggleBtn');
+            const icon = btn.querySelector('i');
+            if (isMusicOn) {
+                btn.classList.add('bg-brand-50', 'dark:bg-brand-950/40', 'text-brand-600', 'dark:text-brand-300');
+                icon.className = 'fa-solid fa-music text-lg';
+            } else {
+                btn.classList.remove('bg-brand-50', 'dark:bg-brand-950/40', 'text-brand-600', 'dark:text-brand-300');
+                icon.className = 'fa-solid fa-music-slash text-lg';
+            }
         }
 
         // 更新“今天聚焦”卡片
