@@ -313,7 +313,7 @@
         let filterCategory = 'all';    // 默认展示全部
         let searchQuery = '';          // 搜索关键词
         let events = [];               // 日程数据集
-        let isMusicOn = false;         // 背景音乐开关状态
+        let isMusicOn = true;          // 背景音乐开关状态（默认开启）
 
         // 颜色映射配置
         const CATEGORIES = {
@@ -431,7 +431,9 @@
         function initMusic() {
             const audio = document.getElementById('bgmAudio');
             audio.volume = 0.35;
-            isMusicOn = localStorage.getItem('musicEnabled') === 'true';
+            // 优先使用本地存储值，没有时默认为 true（开启）
+            const storedValue = localStorage.getItem('musicEnabled');
+            isMusicOn = storedValue === null ? true : storedValue === 'true';
             updateMusicButton();
 
             document.getElementById('musicToggleBtn').addEventListener('click', () => {
@@ -447,10 +449,14 @@
                 }
             });
 
+            // 页面加载时尝试播放（浏览器可能阻止）
             if (isMusicOn) {
-                audio.play().catch(() => {
-                    console.warn('浏览器阻止自动播放，等待用户交互后再播放。');
-                });
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(() => {
+                        console.log('浏览器阻止自动播放，请点击页面任意位置或音乐按钮后再试。');
+                    });
+                }
             }
         }
 
