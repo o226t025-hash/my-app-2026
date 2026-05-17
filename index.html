@@ -437,6 +437,14 @@
             updateMusicButton();
 
             document.getElementById('musicToggleBtn').addEventListener('click', () => {
+                // 如果当前默认开启但播放器尚未开始播放，则先尝试开始播放，不直接切换关闭
+                if (isMusicOn && audio.paused) {
+                    audio.play().catch(() => {
+                        console.warn('浏览器阻止自动播放，等待用户交互后再播放。');
+                    });
+                    return;
+                }
+
                 isMusicOn = !isMusicOn;
                 localStorage.setItem('musicEnabled', isMusicOn);
                 updateMusicButton();
